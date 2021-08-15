@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "3ds.h": "c",
+        "dsp.h": "c"
+    }
+}

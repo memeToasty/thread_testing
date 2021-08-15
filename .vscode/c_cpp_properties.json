@@ -1,0 +1,27 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:\\devkitPro\\libctru\\include",
+                "c:\\devkitpro\\devkitarm\\arm-none-eabi\\include\\c++\\11.1.0",
+                "c:\\devkitpro\\devkitarm\\arm-none-eabi\\include\\c++\\11.1.0\\arm-none-eabi",
+                "c:\\devkitpro\\devkitarm\\arm-none-eabi\\include\\c++\\11.1.0\\backward",
+                "c:\\devkitpro\\devkitarm\\lib\\gcc\\arm-none-eabi\\11.1.0\\include-fixed",
+                "c:\\devkitpro\\devkitarm\\lib\\gcc\\arm-none-eabi\\11.1.0\\include",
+                "c:\\devkitpro\\devkitarm\\arm-none-eabi\\include"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "compilerPath": "",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++11",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}
