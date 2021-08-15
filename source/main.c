@@ -34,7 +34,7 @@ void enterHandler(void);
 void startProcessing(void);
 void generateCountArray(int array[]);
 void inputValue(int *var, int digits);
-void shuffleArray(int array[]);
+void shuffleArray(int *array);
 
 /**
  * @brief handles MenuSelection
@@ -110,27 +110,23 @@ void generateCountArray(int array[]) {
 	}
 }
 
-void swap(int *a, int *b) {
-    int temp = *a;
-    *a = *b;
-    *b = temp;
-}
-
-void shuffleArray(int array[]) {
+void shuffleArray(int *array) {
 	for (int x = 0; x < array_length; x++) {
 		int randomPos = rand() % array_length - 1;
-		swap(&array[x], &array[randomPos]);
+		int temp = array[randomPos];
+		array[randomPos] = array[x];
+		array[x] = temp;
 	}
 }
 
 void startProcessing(void) {
-	int array[array_length];
+	int *array = (int*)malloc(array_length * sizeof(int));
+	printf("\x1b[2;1HMemory Position: %ls", array);
 	generateCountArray(array);
 	shuffleArray(array);
 	consoleSelect(&bottom);
-	for (int x = 0; x < 40; x++) {
-		printf("%i\n", array[x]);
-	}
+	printf("\x1b[1;1HArray[0]: %i", array[0]);
+	free(array);
 	
 }
 
