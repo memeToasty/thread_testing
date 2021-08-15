@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
 void handleSelector(bool keyDir) {
 	clearConsoles();
 	if (keyDir) {
-		if (selector < 0) selector = menu_count;
+		if (selector - 1 < 1) selector = menu_count;
 		else selector--;
 	} else {
 		if (selector + 1 > menu_count) selector = 1;
