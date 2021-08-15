@@ -13,18 +13,28 @@
 
 //Global variables//
 
-PrintConsole *top;
-PrintConsole *bottom;
+PrintConsole top, bottom;
 
 int thread_count = 2;
 int selector = 1;
-int menu_count = 2;
+int menu_count = 4;
 int array_length = 100;
+int preffered_core = 0;
 
 // function Definitions//
 
 void merge_sort(int i, int j, int a[], int aux[]);
-void clearConsoles(void);
+
+/**
+ * @brief handles MenuSelection
+ * @param screen 0 = Upper; 1 = Lower; 2 = both
+ */
+void clearConsoles(int screen);
+void enterHandler(void);
+void startProcessing(void);
+void generateCountArray(int array[]);
+void inputValue(int *var, int digits);
+void shuffleArray(int array[]);
 
 /**
  * @brief handles MenuSelection
@@ -53,10 +63,10 @@ int main(int argc, char* argv[]) {
 
 	// Init libs
 	gfxInitDefault();
-	top = consoleInit(GFX_BOTTOM, NULL);
-	bottom = consoleInit(GFX_TOP, NULL);
+	consoleInit(GFX_BOTTOM, &bottom);
+	consoleInit(GFX_TOP, &top);
 
-	consoleSelect(top);
+	consoleSelect(&top);
 
 	// Main loop
 	while (aptMainLoop())
@@ -68,10 +78,14 @@ int main(int argc, char* argv[]) {
 		if (kDown & KEY_START) break; // break in order to return to hbmenu
 		if (kDown & KEY_DUP) handleSelector(true);
 		if (kDown & KEY_DDOWN) handleSelector(false);
-	
+		if (kDown & KEY_A) enterHandler();
+
+		consoleSelect(&top);
 		printf("\x1b[1;3H3DS Thread testing");
 		printf("\x1b[2;3HThread Count: %i", thread_count);
 		printf("\x1b[3;3HArray Length: %i", array_length);
+		printf("\x1b[4;3Hpreffered Core: %i", preffered_core);
+		printf("\x1b[5;3HStart");
 
 		//Print Selector
 		printf("\x1b[%i;1H->", selector + MAIN_MENU_OFFSET);
@@ -90,8 +104,56 @@ int main(int argc, char* argv[]) {
 	return 0;
 }
 
+void generateCountArray(int array[]) {
+	for (int x = 0; x < array_length; x++) {
+		array[x] = x;
+	}
+}
+
+void swap(int *a, int *b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+void shuffleArray(int array[]) {
+	for (int x = 0; x < array_length; x++) {
+		int randomPos = rand() % array_length - 1;
+		swap(&array[x], &array[randomPos]);
+	}
+}
+
+void startProcessing(void) {
+	int array[array_length];
+	generateCountArray(array);
+	shuffleArray(array);
+	consoleSelect(&bottom);
+	for (int x = 0; x < 40; x++) {
+		printf("%i\n", array[x]);
+	}
+	
+}
+
+void inputValue(int *val, int digits) {
+	char mybuf[8];
+	SwkbdState swkbd;
+	swkbdInit(&swkbd, SWKBD_TYPE_NUMPAD, 1, digits);
+	swkbdSetValidation(&swkbd, SWKBD_ANYTHING, 0, 0);
+	swkbdSetFeatures(&swkbd, SWKBD_FIXED_WIDTH);
+	swkbdInputText(&swkbd, mybuf, sizeof(mybuf));
+	*val = atoi(mybuf);
+}
+
+void enterHandler(void) {
+	if (selector == menu_count) startProcessing();
+	if (selector == 1) inputValue(&thread_count, 6);
+	if (selector == 2) inputValue(&array_length, 6);
+	if (selector == 3) inputValue(&preffered_core, 6);
+
+}
+
 void handleSelector(bool keyDir) {
-	clearConsoles();
+	clearConsoles(0);
 	if (keyDir) {
 		if (selector - 1 < 1) selector = menu_count;
 		else selector--;
@@ -140,9 +202,22 @@ void merge_sort(int i, int j, int a[], int aux[]) {
     }
 }
 
-void clearConsoles(void) {
-	consoleSelect(top);
-	consoleClear();
-	consoleSelect(bottom);
-	consoleClear();
+void clearConsoles(int screen) {
+	switch(screen) {
+		case 0:
+			consoleSelect(&top);
+			consoleClear();
+			break;
+		case 1:
+			consoleSelect(&bottom);
+			consoleClear();
+			break;
+		case 2:
+			consoleSelect(&top);
+			consoleClear();
+			consoleSelect(&bottom);
+			consoleClear();
+			break;
+		
+	}
 }
