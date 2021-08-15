@@ -40,7 +40,7 @@ GRAPHICS	:=	gfx
 #GFXBUILD	:=	$(BUILD)
 ROMFS		:=	romfs
 GFXBUILD	:=	$(ROMFS)/gfx
-APP_DESCRIPTION := Pong for 3DS
+APP_DESCRIPTION := 3DS Thread Testing
 APP_AUTHOR := memeToasty
 
 #---------------------------------------------------------------------------------
