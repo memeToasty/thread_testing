@@ -4,10 +4,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
 
 #define SCREEN_WIDTH  400
 #define SCREEN_HEIGHT 240
+
+#define U64_MAX 18446744073709551615
 
 #define MAIN_MENU_OFFSET 1
 
@@ -27,9 +30,8 @@ PrintConsole top, bottom;
 
 int thread_count = 2;
 int selector = 1;
-int menu_count = 4;
+int menu_count = 3;
 int array_length = 100;
-int preffered_core = 0;
 
 // function Definitions//
 
@@ -94,8 +96,7 @@ int main(int argc, char* argv[]) {
 		printf("\x1b[1;3H3DS Thread testing");
 		printf("\x1b[2;3HThread Count: %i", thread_count);
 		printf("\x1b[3;3HArray Length: %i", array_length);
-		printf("\x1b[4;3Hpreffered Core: %i", preffered_core);
-		printf("\x1b[5;3HStart");
+		printf("\x1b[4;3HStart");
 
 		//Print Selector
 		printf("\x1b[%i;1H->", selector + MAIN_MENU_OFFSET);
@@ -137,15 +138,40 @@ void startProcessing(void) {
 	generateCountArray(array);
 	shuffleArray(array);
 
+	
+	time_t start = time(NULL);
+
+	for (int x = 0; x < thread_count; x++) {
+		struct ThreadArguments threadArguments;
+
+		int chunkSize = (array_length - 1) / thread_count;
+
+		threadArguments.i = x * chunkSize;
+		threadArguments.j = (x * chunkSize) + chunkSize;
+		threadArguments.a = array;
+		threadArguments.aux = aux;
+		threads[x] = threadCreate(merge_sort, (void *) &threadArguments, (size_t) array_length, 0x30, x % 1, true);
+	}
+
+	for (int x = 0; x < thread_count; x++) {
+		threadJoin(threads[x], U64_MAX);
+	}
+
 	struct ThreadArguments mainThreadArguments;
 	mainThreadArguments.i = 0;
 	mainThreadArguments.j = array_length - 1;
 	mainThreadArguments.a = array;
 	mainThreadArguments.aux = aux;
 
-	for (int x = 0; x <= thread_count; x++) {
-		threads[x] = threadCreate(merge_sort, (void *) &mainThreadArguments, (size_t) array_length, 0x30, x % 1, true);
-	}
+	Thread lastThread;
+	lastThread = threadCreate(merge_sort, (void *) &mainThreadArguments, (size_t) array_length, 0x30, 0, true);
+	threadJoin(lastThread, U64_MAX);
+
+	time_t processing_time = difftime(time(NULL),start);
+
+	consoleSelect(&bottom);
+	clearConsoles(1);
+	printf("\x1b[1;1H%lld seconds", processing_time);
 
 	free(threads);
 	free(aux);
@@ -166,8 +192,7 @@ void inputValue(int *val, int digits) {
 void enterHandler(void) {
 	if (selector == menu_count) startProcessing();
 	if (selector == 1) inputValue(&thread_count, 6);
-	if (selector == 2) inputValue(&array_length, 6);
-	if (selector == 3) inputValue(&preffered_core, 6);
+	if (selector == 2) inputValue(&array_length, 8);
 
 }
 
@@ -184,7 +209,8 @@ void handleSelector(bool keyDir) {
 
 // function to sort the subsection a[i .. j] of the array a[]
 void merge_sort(void* threadArgumentsPointer) {
-	ThreadArguments threadArguments = *(ThreadArguments*) threadArgumentsPointer;
+	struct ThreadArguments threadArguments; 
+	threadArguments = *(struct ThreadArguments*) threadArgumentsPointer;
 	
 	int i, j, *a, *aux;
 	i = threadArguments.i;
