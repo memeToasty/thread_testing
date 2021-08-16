@@ -11,6 +11,16 @@
 
 #define MAIN_MENU_OFFSET 1
 
+// Struct Definitions
+
+struct ThreadArguments {
+	int i;
+	int j;
+	int *aux;
+	int *a;
+
+};
+
 //Global variables//
 
 PrintConsole top, bottom;
@@ -23,7 +33,7 @@ int preffered_core = 0;
 
 // function Definitions//
 
-void merge_sort(int i, int j, int a[], int aux[]);
+void merge_sort(void* threadArgumentsPointer);
 
 /**
  * @brief handles MenuSelection
@@ -121,12 +131,24 @@ void shuffleArray(int *array) {
 
 void startProcessing(void) {
 	int *array = (int*)malloc(array_length * sizeof(int));
+	int *aux = (int*)malloc(array_length * sizeof(int));
+	Thread *threads = (Thread*)malloc(thread_count * sizeof(Thread));
+
 	generateCountArray(array);
 	shuffleArray(array);
-	consoleSelect(&bottom);
-	for (int x = 0; x < 30; x++) {
-		printf("\x1b[%i;1HArray[0]: %i", x+1, array[x]);
+
+	struct ThreadArguments mainThreadArguments;
+	mainThreadArguments.i = 0;
+	mainThreadArguments.j = array_length - 1;
+	mainThreadArguments.a = array;
+	mainThreadArguments.aux = aux;
+
+	for (int x = 0; x <= thread_count; x++) {
+		threads[x] = threadCreate(merge_sort, (void *) &mainThreadArguments, (size_t) array_length, 0x30, x % 1, true);
 	}
+
+	free(threads);
+	free(aux);
 	free(array);
 	
 }
@@ -161,7 +183,15 @@ void handleSelector(bool keyDir) {
 }
 
 // function to sort the subsection a[i .. j] of the array a[]
-void merge_sort(int i, int j, int a[], int aux[]) {
+void merge_sort(void* threadArgumentsPointer) {
+	ThreadArguments threadArguments = *(ThreadArguments*) threadArgumentsPointer;
+	
+	int i, j, *a, *aux;
+	i = threadArguments.i;
+	j = threadArguments.j;
+	a = threadArguments.a;
+	aux = threadArguments.aux;
+
     if (j <= i) {
         return;     // the subsection is empty or a single element
     }
@@ -169,9 +199,19 @@ void merge_sort(int i, int j, int a[], int aux[]) {
 
     // left sub-array is a[i .. mid]
     // right sub-array is a[mid + 1 .. j]
+	struct ThreadArguments subthreadArgument1, subthreadArgument2;
+	subthreadArgument1.i = i;
+	subthreadArgument1.j = mid;
+	subthreadArgument1.a = a;
+	subthreadArgument1.aux = aux;
+
+	subthreadArgument2.i = mid + 1;
+	subthreadArgument2.j = j;
+	subthreadArgument2.a = a;
+	subthreadArgument2.aux = aux;
     
-    merge_sort(i, mid, a, aux);     // sort the left sub-array recursively
-    merge_sort(mid + 1, j, a, aux);     // sort the right sub-array recursively
+    merge_sort(&subthreadArgument1);     // sort the left sub-array recursively
+    merge_sort(&subthreadArgument2);     // sort the right sub-array recursively
 
     int pointer_left = i;       // pointer_left points to the beginning of the left sub-array
     int pointer_right = mid + 1;        // pointer_right points to the beginning of the right sub-array
