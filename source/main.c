@@ -112,7 +112,7 @@ void generateCountArray(int array[]) {
 
 void shuffleArray(int *array) {
 	for (int x = 0; x < array_length; x++) {
-		int randomPos = rand() % array_length - 1;
+		int randomPos = rand() % (array_length - 1);
 		int temp = array[randomPos];
 		array[randomPos] = array[x];
 		array[x] = temp;
@@ -121,11 +121,12 @@ void shuffleArray(int *array) {
 
 void startProcessing(void) {
 	int *array = (int*)malloc(array_length * sizeof(int));
-	printf("\x1b[2;1HMemory Position: %ls", array);
 	generateCountArray(array);
 	shuffleArray(array);
 	consoleSelect(&bottom);
-	printf("\x1b[1;1HArray[0]: %i", array[0]);
+	for (int x = 0; x < 30; x++) {
+		printf("\x1b[%i;1HArray[0]: %i", x+1, array[x]);
+	}
 	free(array);
 	
 }
